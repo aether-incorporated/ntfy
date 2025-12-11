@@ -1,92 +1,56 @@
 import * as React from "react";
-import { createContext, Suspense, useContext, useEffect, useState, useMemo } from "react";
-import { Box, Toolbar, CssBaseline, Backdrop, CircularProgress, useMediaQuery, ThemeProvider, createTheme } from "@mui/material";
+import { Suspense, useEffect } from "react";
+import { Box, CssBaseline, Backdrop, CircularProgress, ThemeProvider, createTheme } from "@mui/material";
 import { useLiveQuery } from "dexie-react-hooks";
 import { BrowserRouter, Outlet, Route, Routes, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AllSubscriptions, SingleSubscription } from "./Notifications";
-import { darkTheme, lightTheme } from "./theme";
-import Navigation from "./Navigation";
-import ActionBar from "./ActionBar";
-import Preferences from "./Preferences";
+import { darkTheme } from "./theme";
 import subscriptionManager from "../app/SubscriptionManager";
 import userManager from "../app/UserManager";
 import { expandUrl, getKebabCaseLangStr } from "../app/utils";
 import ErrorBoundary from "./ErrorBoundary";
 import routes from "./routes";
-import { useAccountListener, useBackgroundProcesses, useConnectionListeners, useWebPushTopics } from "./hooks";
-import PublishDialog from "./PublishDialog";
-import Messaging from "./Messaging";
-import Login from "./Login";
-import Signup from "./Signup";
-import Account from "./Account";
+import { useBackgroundProcesses, useConnectionListeners, useWebPushTopics, useAccountListener } from "./hooks";
 import initI18n from "../app/i18n"; // Translations!
-import prefs, { THEME } from "../app/Prefs";
 import RTLCacheProvider from "./RTLCacheProvider";
-import session from "../app/Session";
+
+export const AccountContext = React.createContext({ account: null, setAccount: () => {} });
 
 initI18n();
-
-export const AccountContext = createContext(null);
-
-const darkModeEnabled = (prefersDarkMode, themePreference) => {
-  switch (themePreference) {
-    case THEME.DARK:
-      return true;
-
-    case THEME.LIGHT:
-      return false;
-
-    case THEME.SYSTEM:
-    default:
-      return prefersDarkMode;
-  }
-};
 
 const App = () => {
   const { i18n } = useTranslation();
   const languageDir = i18n.dir();
-  const [account, setAccount] = useState(null);
-  const accountMemo = useMemo(() => ({ account, setAccount }), [account, setAccount]);
-  const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
-  const themePreference = useLiveQuery(() => prefs.theme());
-  const theme = React.useMemo(
-    () => createTheme({ ...(darkModeEnabled(prefersDarkMode, themePreference) ? darkTheme : lightTheme), direction: languageDir }),
-    [prefersDarkMode, themePreference, languageDir]
-  );
+  //   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
+  //   const themePreference = useLiveQuery(() => prefs.theme());
+  //     const theme = React.useMemo(
+  //       () => createTheme({ ...(darkModeEnabled(prefersDarkMode, themePreference) ? darkTheme : lightTheme), direction: languageDir }),
+  //       [prefersDarkMode, themePreference, languageDir]
+  //     );
+  const theme = React.useMemo(() => createTheme({ ...darkTheme, direction: languageDir }), [languageDir]);
 
   useEffect(() => {
     document.documentElement.setAttribute("lang", getKebabCaseLangStr(i18n.language));
     document.dir = languageDir;
   }, [i18n.language, languageDir]);
 
-  useEffect(() => {
-    if (!session.exists() && config.require_login && window.location.pathname !== routes.login) {
-      window.location.href = routes.login;
-    }
-  }, []);
-
   return (
     <Suspense fallback={<Loader />}>
       <RTLCacheProvider>
         <BrowserRouter>
           <ThemeProvider theme={theme}>
-            <AccountContext.Provider value={accountMemo}>
-              <CssBaseline />
-              <ErrorBoundary>
-                <Routes>
-                  <Route path={routes.login} element={<Login />} />
-                  <Route path={routes.signup} element={<Signup />} />
-                  <Route element={<Layout />}>
-                    <Route path={routes.app} element={<AllSubscriptions />} />
-                    <Route path={routes.account} element={<Account />} />
-                    <Route path={routes.settings} element={<Preferences />} />
-                    <Route path={routes.subscription} element={<SingleSubscription />} />
-                    <Route path={routes.subscriptionExternal} element={<SingleSubscription />} />
-                  </Route>
-                </Routes>
-              </ErrorBoundary>
-            </AccountContext.Provider>
+            <CssBaseline />
+            <ErrorBoundary>
+              <Routes>
+                <Route element={<Layout />}>
+                  <Route path={routes.app} element={<AllSubscriptions />} />
+                  {/* <Route path={routes.settings} element={<Preferences />} /> */}
+                  <Route path={routes.subscription} element={<SingleSubscription />} />
+                  {/* <Route path={routes.subscriptionExternal} element={<SingleSubscription />} /> */}
+                </Route>
+              </Routes>
+            </ErrorBoundary>
           </ThemeProvider>
         </BrowserRouter>
       </RTLCacheProvider>
@@ -95,15 +59,13 @@ const App = () => {
 };
 
 const updateTitle = (newNotificationsCount) => {
-  document.title = newNotificationsCount > 0 ? `(${newNotificationsCount}) ntfy` : "ntfy";
   window.navigator.setAppBadge?.(newNotificationsCount);
 };
 
 const Layout = () => {
   const params = useParams();
-  const { account, setAccount } = useContext(AccountContext);
-  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
-  const [sendDialogOpenMode, setSendDialogOpenMode] = useState("");
+  const [account, setAccount] = React.useState(null);
+  //   const [mobileDrawerOpen, setMobileDrawerOpen] = React.useState(false);
   const users = useLiveQuery(() => userManager.all());
   const subscriptions = useLiveQuery(() => subscriptionManager.all());
   const webPushTopics = useWebPushTopics();
@@ -115,32 +77,40 @@ const Layout = () => {
       (config.base_url === s.baseUrl && params.topic === s.topic)
   );
 
-  useConnectionListeners(account, subscriptions, users, webPushTopics);
   useAccountListener(setAccount);
+  useConnectionListeners(account, subscriptions, users, webPushTopics);
   useBackgroundProcesses();
   useEffect(() => updateTitle(newNotificationsCount), [newNotificationsCount]);
+  useEffect(() => {
+    const manifest = document?.querySelector('link[rel="manifest"]');
+    if (manifest) {
+      manifest.setAttribute("href", `/manifest.webmanifest?url=${encodeURIComponent(window.location.pathname)}`);
+    }
+  }, [params]);
+
+  const contextValue = React.useMemo(() => ({ account, setAccount }), [account]);
 
   return (
-    <Box sx={{ display: "flex" }}>
-      <ActionBar selected={selected} onMobileDrawerToggle={() => setMobileDrawerOpen(!mobileDrawerOpen)} />
-      <Navigation
-        subscriptions={subscriptionsWithoutInternal}
-        selectedSubscription={selected}
-        mobileDrawerOpen={mobileDrawerOpen}
-        onMobileDrawerToggle={() => setMobileDrawerOpen(!mobileDrawerOpen)}
-        onPublishMessageClick={() => setSendDialogOpenMode(PublishDialog.OPEN_MODE_DEFAULT)}
-      />
-      <Main>
-        <Toolbar />
-        <Outlet
-          context={{
-            subscriptions: subscriptionsWithoutInternal,
-            selected,
-          }}
-        />
-      </Main>
-      <Messaging selected={selected} dialogOpenMode={sendDialogOpenMode} onDialogOpenModeChange={setSendDialogOpenMode} />
-    </Box>
+    <AccountContext.Provider value={contextValue}>
+      <Box sx={{ display: "flex" }}>
+        {/* <ActionBar selected={selected} onMobileDrawerToggle={() => setMobileDrawerOpen(!mobileDrawerOpen)} />
+        <Navigation
+          subscriptions={subscriptionsWithoutInternal}
+          selectedSubscription={selected}
+          mobileDrawerOpen={mobileDrawerOpen}
+          onMobileDrawerToggle={() => setMobileDrawerOpen(!mobileDrawerOpen)}
+        /> */}
+        <Main>
+          {/* <Toolbar /> */}
+          <Outlet
+            context={{
+              subscriptions: subscriptionsWithoutInternal,
+              selected,
+            }}
+          />
+        </Main>
+      </Box>
+    </AccountContext.Provider>
   );
 };
 
@@ -153,7 +123,7 @@ const Main = (props) => (
       flexGrow: 1,
       flexDirection: "column",
       padding: { xs: 0, md: 3 },
-      width: { sm: `calc(100% - ${Navigation.width}px)` },
+      width: "100%",
       height: "100dvh",
       overflow: "auto",
       backgroundColor: ({ palette }) => (palette.mode === "light" ? palette.grey[100] : palette.grey[900]),

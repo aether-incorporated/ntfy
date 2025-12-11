@@ -6,18 +6,13 @@ import {
   Toolbar,
   Divider,
   List,
-  Alert,
-  AlertTitle,
   Badge,
   CircularProgress,
-  Link,
   ListSubheader,
   Portal,
   Tooltip,
-  Typography,
   Box,
   IconButton,
-  Button,
   useTheme,
 } from "@mui/material";
 import * as React from "react";
@@ -29,7 +24,7 @@ import AddIcon from "@mui/icons-material/Add";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ChatBubble, MoreVert, NotificationsOffOutlined, Send } from "@mui/icons-material";
 import ArticleIcon from "@mui/icons-material/Article";
-import { Trans, useTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import CelebrationIcon from "@mui/icons-material/Celebration";
 import SubscribeDialog from "./SubscribeDialog";
 import { openUrl, topicDisplayName, topicUrl } from "../app/utils";
@@ -45,6 +40,7 @@ import { AccountContext } from "./App";
 import { PermissionDenyAll, PermissionRead, PermissionReadWrite, PermissionWrite } from "./ReserveIcons";
 import { SubscriptionPopup } from "./SubscriptionPopup";
 import { useNotificationPermissionListener } from "./hooks";
+import NotificationPermissionAlerts from "./NotificationPermissionAlerts";
 
 const navWidth = 280;
 
@@ -129,12 +125,7 @@ const NavList = (props) => {
     <>
       <Toolbar sx={{ display: { xs: "none", sm: "block" } }} />
       <List component="nav" sx={{ paddingTop: { xs: 0, sm: alertVisible ? 0 : "" } }}>
-        {showNotificationPermissionRequired && <NotificationPermissionRequired />}
-        {showNotificationPermissionDenied && <NotificationPermissionDeniedAlert />}
-        {showNotificationBrowserNotSupportedBox && <NotificationBrowserNotSupportedAlert />}
-        {showNotificationContextNotSupportedBox && <NotificationContextNotSupportedAlert />}
-        {showNotificationIOSInstallRequired && <NotificationIOSInstallRequiredAlert />}
-        {alertVisible && <Divider />}
+        <NotificationPermissionAlerts />
         {!showSubscriptionsList && (
           <ListItemButton onClick={() => navigate(routes.app)} selected={location.pathname === config.app_root}>
             <ListItemIcon>
@@ -359,69 +350,6 @@ const SubscriptionItem = (props) => {
         <SubscriptionPopup subscription={subscription} anchor={menuAnchorEl} onClose={() => setMenuAnchorEl(null)} />
       </Portal>
     </>
-  );
-};
-
-const NotificationPermissionRequired = () => {
-  const { t } = useTranslation();
-  const requestPermission = async () => {
-    await notifier.maybeRequestPermission();
-  };
-  return (
-    <Alert severity="warning" sx={{ paddingTop: 2 }}>
-      <AlertTitle>{t("alert_notification_permission_required_title")}</AlertTitle>
-      <Typography gutterBottom>{t("alert_notification_permission_required_description")}</Typography>
-      <Button sx={{ float: "right" }} color="inherit" size="small" onClick={requestPermission}>
-        {t("alert_notification_permission_required_button")}
-      </Button>
-    </Alert>
-  );
-};
-
-const NotificationPermissionDeniedAlert = () => {
-  const { t } = useTranslation();
-  return (
-    <Alert severity="warning" sx={{ paddingTop: 2 }}>
-      <AlertTitle>{t("alert_notification_permission_denied_title")}</AlertTitle>
-      <Typography gutterBottom>{t("alert_notification_permission_denied_description")}</Typography>
-    </Alert>
-  );
-};
-
-const NotificationIOSInstallRequiredAlert = () => {
-  const { t } = useTranslation();
-  return (
-    <Alert severity="warning" sx={{ paddingTop: 2 }}>
-      <AlertTitle>{t("alert_notification_ios_install_required_title")}</AlertTitle>
-      <Typography gutterBottom>{t("alert_notification_ios_install_required_description")}</Typography>
-    </Alert>
-  );
-};
-
-const NotificationBrowserNotSupportedAlert = () => {
-  const { t } = useTranslation();
-  return (
-    <Alert severity="warning" sx={{ paddingTop: 2 }}>
-      <AlertTitle>{t("alert_not_supported_title")}</AlertTitle>
-      <Typography gutterBottom>{t("alert_not_supported_description")}</Typography>
-    </Alert>
-  );
-};
-
-const NotificationContextNotSupportedAlert = () => {
-  const { t } = useTranslation();
-  return (
-    <Alert severity="warning" sx={{ paddingTop: 2 }}>
-      <AlertTitle>{t("alert_not_supported_title")}</AlertTitle>
-      <Typography gutterBottom>
-        <Trans
-          i18nKey="alert_not_supported_context_description"
-          components={{
-            mdnLink: <Link href="https://developer.mozilla.org/en-US/docs/Web/API/notification" target="_blank" rel="noopener" />,
-          }}
-        />
-      </Typography>
-    </Alert>
   );
 };
 

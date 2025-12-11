@@ -14,6 +14,14 @@ export const VerticallyCenteredContainer = styled(Container)(({ theme }) => ({
   color: theme.palette.text.primary,
 }));
 
+export const HorizontallyCenteredContainer = styled(Container)(({ theme }) => ({
+  display: "flex",
+  flexDirection: "row",
+  justifyContent: "center",
+  alignContent: "center",
+  color: theme.palette.text.primary,
+}));
+
 export const LightboxBackdrop = styled(Backdrop)({
   backgroundColor: "rgba(0, 0, 0, 0.8)", // was: 0.5
 });

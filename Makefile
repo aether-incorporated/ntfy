@@ -1,7 +1,7 @@
 MAKEFLAGS := --jobs=1
 PYTHON := python3
 PIP := pip3
-VERSION := $(shell git describe --tag)
+VERSION := $(shell git describe --tag 2> /dev/null || echo dev)
 COMMIT := $(shell git rev-parse --short HEAD)
 
 .PHONY:
@@ -187,7 +187,7 @@ cli-linux-server: cli-deps-static-sites
 	mkdir -p dist/ntfy_linux_server server/docs
 	CGO_ENABLED=1 go build \
 		-o dist/ntfy_linux_server/ntfy \
-		-tags sqlite_omit_load_extension,osusergo,netgo \
+		-tags sqlite_omit_load_extension,osusergo,netgo,nopayments \
 		-ldflags \
 		"-linkmode=external -extldflags=-static -s -w -X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.date=$(shell date +%s)"
 

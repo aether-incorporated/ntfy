@@ -151,11 +151,15 @@ export const useNotificationPermissionListener = (query) => {
     if ("permissions" in navigator) {
       navigator.permissions.query({ name: "notifications" }).then((permission) => {
         permission.addEventListener("change", handler);
-
-        return () => {
-          permission.removeEventListener("change", handler);
-        };
       });
+
+      // Also poll for changes, because the event listener doesn't fire when the permission changes
+      // from "default" to "granted" or "denied" in some browsers.
+      const interval = setInterval(handler, 1000);
+
+      return () => {
+        clearInterval(interval);
+      };
     }
   }, []);
 

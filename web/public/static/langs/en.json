@@ -91,7 +91,7 @@
   "notifications_actions_not_supported": "Action not supported in web app",
   "notifications_actions_http_request_title": "Send HTTP {{method}} to {{url}}",
   "notifications_actions_failed_notification": "Unsuccessful action",
-  "notifications_none_for_topic_title": "You haven't received any notifications for this topic yet.",
+  "notifications_none_for_topic_title": "You haven't received any notifications.",
   "notifications_none_for_topic_description": "To send notifications to this topic, simply PUT or POST to the topic URL.",
   "notifications_none_for_any_title": "You haven't received any notifications.",
   "notifications_none_for_any_description": "To send notifications to a topic, simply PUT or POST to the topic URL. Here's an example using one of your topics.",

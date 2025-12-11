@@ -622,13 +622,18 @@ func (s *Server) handleWebConfig(w http.ResponseWriter, _ *http.Request, _ *visi
 }
 
 // handleWebManifest serves the web app manifest for the progressive web app (PWA)
-func (s *Server) handleWebManifest(w http.ResponseWriter, _ *http.Request, _ *visitor) error {
+func (s *Server) handleWebManifest(w http.ResponseWriter, r *http.Request, _ *visitor) error {
+	w.Header().Set("Cache-Control", "no-cache") // Force browser to re-fetch manifest
+	startURL := s.config.WebRoot
+	if u := r.URL.Query().Get("url"); u != "" && strings.HasPrefix(u, "/") {
+		startURL = u
+	}
 	response := &webManifestResponse{
-		Name:            "ntfy web",
-		Description:     "ntfy lets you send push notifications via scripts from any computer or phone",
-		ShortName:       "ntfy",
+		Name:            "Notifications",
+		Description:     "Notifications lets you receive push notifications from your Lieutenants",
+		ShortName:       "Notifications",
 		Scope:           "/",
-		StartURL:        s.config.WebRoot,
+		StartURL:        startURL,
 		Display:         "standalone",
 		BackgroundColor: "#ffffff",
 		ThemeColor:      "#317f6f",

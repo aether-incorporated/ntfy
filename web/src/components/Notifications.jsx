@@ -37,15 +37,16 @@ import {
   unmatchedTags,
 } from "../app/utils";
 import { formatMessage, formatTitle, isImage } from "../app/notificationUtils";
-import { LightboxBackdrop, Paragraph, VerticallyCenteredContainer } from "./styles";
+import { LightboxBackdrop, Paragraph, VerticallyCenteredContainer, HorizontallyCenteredContainer } from "./styles";
 import subscriptionManager from "../app/SubscriptionManager";
 import priority1 from "../img/priority-1.svg";
 import priority2 from "../img/priority-2.svg";
 import priority4 from "../img/priority-4.svg";
 import priority5 from "../img/priority-5.svg";
-import logoOutline from "../img/ntfy-outline.svg";
+import logoOutline from "../img/ntfy.png";
 import AttachmentIcon from "./AttachmentIcon";
 import { useAutoSubscribe } from "./hooks";
+import NotificationPermissionAlerts from "./NotificationPermissionAlerts";
 
 const priorityFiles = {
   1: priority1,
@@ -68,7 +69,14 @@ export const SingleSubscription = () => {
   if (!selected) {
     return <Loading />;
   }
-  return <SingleSubscriptionList subscription={selected} />;
+  return (
+    <>
+      <HorizontallyCenteredContainer maxWidth="xs">
+        <NotificationPermissionAlerts />
+      </HorizontallyCenteredContainer>
+      <SingleSubscriptionList subscription={selected} />
+    </>
+  );
 };
 
 const AllSubscriptionsList = (props) => {
@@ -81,7 +89,7 @@ const AllSubscriptionsList = (props) => {
     return <NoSubscriptions />;
   }
   if (notifications.length === 0) {
-    return <NoNotificationsWithoutSubscription subscriptions={subscriptions} />;
+    return <NoNotifications />;
   }
   return <NotificationList key="all" notifications={notifications} messageBar={false} />;
 };
@@ -588,7 +596,6 @@ const UserAction = (props) => {
 
 const NoNotifications = (props) => {
   const { t } = useTranslation();
-  const topicShortUrlResolved = topicShortUrl(props.subscription.baseUrl, props.subscription.topic);
   return (
     <VerticallyCenteredContainer maxWidth="xs">
       <Typography variant="h5" align="center" sx={{ paddingBottom: 1 }}>
@@ -596,17 +603,6 @@ const NoNotifications = (props) => {
         <br />
         {t("notifications_none_for_topic_title")}
       </Typography>
-      <Paragraph>{t("notifications_none_for_topic_description")}</Paragraph>
-      <Paragraph>
-        {t("notifications_example")}:<br />
-        <tt>
-          {'$ curl -d "Hi" '}
-          {topicShortUrlResolved}
-        </tt>
-      </Paragraph>
-      <Paragraph>
-        <ForMoreDetails />
-      </Paragraph>
     </VerticallyCenteredContainer>
   );
 };
