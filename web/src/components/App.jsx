@@ -2,7 +2,7 @@ import * as React from "react";
 import { Suspense, useEffect } from "react";
 import { Box, CssBaseline, Backdrop, CircularProgress, ThemeProvider, createTheme } from "@mui/material";
 import { useLiveQuery } from "dexie-react-hooks";
-import { BrowserRouter, Outlet, Route, Routes, useParams } from "react-router-dom";
+import { BrowserRouter, Outlet, Route, Routes, useParams, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AllSubscriptions, SingleSubscription } from "./Notifications";
 import { darkTheme } from "./theme";
@@ -14,6 +14,8 @@ import routes from "./routes";
 import { useBackgroundProcesses, useConnectionListeners, useWebPushTopics, useAccountListener } from "./hooks";
 import initI18n from "../app/i18n"; // Translations!
 import RTLCacheProvider from "./RTLCacheProvider";
+
+import DynamicManifest from "./DynamicManifest";
 
 export const AccountContext = React.createContext({ account: null, setAccount: () => {} });
 
@@ -64,6 +66,7 @@ const updateTitle = (newNotificationsCount) => {
 
 const Layout = () => {
   const params = useParams();
+  const location = useLocation();
   const [account, setAccount] = React.useState(null);
   //   const [mobileDrawerOpen, setMobileDrawerOpen] = React.useState(false);
   const users = useLiveQuery(() => userManager.all());
@@ -81,17 +84,12 @@ const Layout = () => {
   useConnectionListeners(account, subscriptions, users, webPushTopics);
   useBackgroundProcesses();
   useEffect(() => updateTitle(newNotificationsCount), [newNotificationsCount]);
-  useEffect(() => {
-    const manifest = document?.querySelector('link[rel="manifest"]');
-    if (manifest) {
-      manifest.setAttribute("href", `/manifest.webmanifest?url=${encodeURIComponent(window.location.pathname)}`);
-    }
-  }, [params]);
 
   const contextValue = React.useMemo(() => ({ account, setAccount }), [account]);
 
   return (
     <AccountContext.Provider value={contextValue}>
+      <DynamicManifest />
       <Box sx={{ display: "flex" }}>
         {/* <ActionBar selected={selected} onMobileDrawerToggle={() => setMobileDrawerOpen(!mobileDrawerOpen)} />
         <Navigation

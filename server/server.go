@@ -625,8 +625,8 @@ func (s *Server) handleWebConfig(w http.ResponseWriter, _ *http.Request, _ *visi
 func (s *Server) handleWebManifest(w http.ResponseWriter, r *http.Request, _ *visitor) error {
 	w.Header().Set("Cache-Control", "no-cache") // Force browser to re-fetch manifest
 	startURL := s.config.WebRoot
-	if u := r.URL.Query().Get("url"); u != "" && strings.HasPrefix(u, "/") {
-		startURL = u
+	if u := r.URL.Query().Get("topic"); u != "" {
+		startURL = "/" + u
 	}
 	response := &webManifestResponse{
 		Name:            "Notifications",
@@ -636,7 +636,7 @@ func (s *Server) handleWebManifest(w http.ResponseWriter, r *http.Request, _ *vi
 		StartURL:        startURL,
 		Display:         "standalone",
 		BackgroundColor: "#ffffff",
-		ThemeColor:      "#317f6f",
+		ThemeColor:      "#E3E3E3",
 		Icons: []*webManifestIcon{
 			{SRC: "/static/images/pwa-192x192.png", Sizes: "192x192", Type: "image/png"},
 			{SRC: "/static/images/pwa-512x512.png", Sizes: "512x512", Type: "image/png"},
