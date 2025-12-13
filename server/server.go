@@ -161,7 +161,6 @@ const (
 // New instantiates a new Server. It creates the cache and adds a Firebase
 // subscriber (if configured).
 func New(conf *Config) (*Server, error) {
-	log.Info("Server config: %+v", conf)
 	var mailer mailer
 	if conf.SMTPSenderAddr != "" {
 		mailer = &smtpSender{config: conf}
@@ -942,8 +941,8 @@ func (s *Server) forwardPollRequest(v *visitor, m *message) {
 	}
 	req.Header.Set("User-Agent", "ntfy/"+s.config.Version)
 	req.Header.Set("X-Poll-ID", m.ID)
+	req.Header.Set("X-Forwarded-For", v.ip.String())
 	if s.config.UpstreamAccessToken != "" {
-		logvm(v, m).Info("Using upstream access token: %s", s.config.UpstreamAccessToken)
 		req.Header.Set("Authorization", util.BearerAuth(s.config.UpstreamAccessToken))
 	}
 	var httpClient = &http.Client{
