@@ -161,6 +161,7 @@ const (
 // New instantiates a new Server. It creates the cache and adds a Firebase
 // subscriber (if configured).
 func New(conf *Config) (*Server, error) {
+	log.Info("Server config: %+v", conf)
 	var mailer mailer
 	if conf.SMTPSenderAddr != "" {
 		mailer = &smtpSender{config: conf}
