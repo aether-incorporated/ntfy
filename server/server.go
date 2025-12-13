@@ -943,6 +943,7 @@ func (s *Server) forwardPollRequest(v *visitor, m *message) {
 	req.Header.Set("User-Agent", "ntfy/"+s.config.Version)
 	req.Header.Set("X-Poll-ID", m.ID)
 	if s.config.UpstreamAccessToken != "" {
+		logvm(v, m).Info("Using upstream access token: %s", s.config.UpstreamAccessToken)
 		req.Header.Set("Authorization", util.BearerAuth(s.config.UpstreamAccessToken))
 	}
 	var httpClient = &http.Client{
