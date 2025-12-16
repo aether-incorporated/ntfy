@@ -66,7 +66,6 @@ const updateTitle = (newNotificationsCount) => {
 
 const Layout = () => {
   const params = useParams();
-  const location = useLocation();
   const [account, setAccount] = React.useState(null);
   //   const [mobileDrawerOpen, setMobileDrawerOpen] = React.useState(false);
   const users = useLiveQuery(() => userManager.all());
